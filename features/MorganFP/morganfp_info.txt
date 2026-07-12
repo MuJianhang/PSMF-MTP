@@ -1,0 +1,11 @@
+fingerprint: Morgan / ECFP4
+radius: 2
+n_bits: 1024
+pca_dim: 400
+train_shape_1024: (7872, 1024)
+test_shape_1024: (1969, 1024)
+train_shape_400: (7872, 400)
+test_shape_400: (1969, 400)
+train_zero_fingerprints: 0
+test_zero_fingerprints: 0
+pca_explained_variance_ratio_sum: 0.9999995827674866
