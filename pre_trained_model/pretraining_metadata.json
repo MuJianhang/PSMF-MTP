@@ -1,0 +1,15 @@
+{
+  "artifact": "short-peptide pretrained sequence encoder",
+  "task": "masked language modeling",
+  "architecture": "BertForMaskedLM",
+  "pretraining_corpus": "UniRef90 peptide sequences",
+  "sequence_length_range": "1-50 amino acids",
+  "checkpoint_description": "30k-step version used for the reported study",
+  "vocabulary_size": 26,
+  "hidden_size": 128,
+  "num_hidden_layers": 6,
+  "num_attention_heads": 8,
+  "intermediate_size": 512,
+  "max_position_embeddings": 128,
+  "public_release_note": "This metadata is a sanitized description. The original serialized training-argument object is not distributed because it contains environment-specific paths and is not required to load the released encoder."
+}

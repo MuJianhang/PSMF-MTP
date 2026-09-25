@@ -1,20 +1,7 @@
-# Core data processing
-numpy>=1.21.0
-pandas>=1.3.0
-scipy>=1.7.0
-
-# Feature preprocessing and saved scaler/PCA files
-scikit-learn>=1.0.0
-joblib>=1.1.0
-
-# FASTA and sequence-related utilities
-biopython>=1.79
-
-# Pretrained model loading
-torch>=1.12.0
-transformers>=4.25.0
-tokenizers>=0.13.0
-safetensors>=0.3.0
-
-# Progress display
-tqdm>=4.62.0
+numpy>=1.23,<3
+pandas>=1.5,<3
+scikit-learn>=1.2,<2
+joblib>=1.2,<2
+torch>=2.0
+transformers>=4.40,<6
+safetensors>=0.4
