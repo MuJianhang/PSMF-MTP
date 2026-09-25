@@ -1,0 +1,11 @@
+{
+  "seed": 42,
+  "epochs": 10,
+  "batch_size": 128,
+  "learning_rate": 0.001,
+  "weight_decay": 0.00001,
+  "hidden_dim": 256,
+  "dropout": 0.3,
+  "validation_fraction": 0.1,
+  "threshold": 0.57
+}

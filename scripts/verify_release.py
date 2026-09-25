@@ -21,6 +21,9 @@ EXPECTED_COUNTS = {"train": 7872, "test": 1969}
 REQUIRED_FILES = [
     "README.md",
     "requirements.txt",
+    "configs/demo_config.json",
+    "model/__init__.py",
+    "model/demo_model.py",
     "dataset/train_new.fasta",
     "dataset/test_new.fasta",
     "dataset/LABELS.md",
@@ -32,6 +35,9 @@ REQUIRED_FILES = [
     "scripts/load_features_demo.py",
     "scripts/extract_pretrained_features_demo.py",
     "scripts/evaluate_predictions.py",
+    "scripts/train_demo.py",
+    "scripts/predict_demo.py",
+    "scripts/run_demo.py",
 ]
 
 

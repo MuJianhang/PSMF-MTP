@@ -1,6 +1,6 @@
 # PSMF-MTP
 
-PSMF-MTP is a computational framework for multi-functional therapeutic peptide prediction. This repository provides the benchmark dataset, eight groups of physicochemical and structural features, a short-peptide pretrained sequence encoder, and utility scripts for data parsing, feature preparation, representation extraction, and multi-label evaluation.
+PSMF-MTP is a computational framework for multi-functional therapeutic peptide prediction. This repository provides the benchmark dataset, eight groups of physicochemical and structural features, a short-peptide pretrained sequence encoder, utility scripts, and a runnable reference pipeline covering feature loading, model training, prediction, and multi-label evaluation.
 
 ## Repository contents
 
@@ -28,11 +28,19 @@ PSMF-MTP/
 |   |-- tokenizer_config.json
 |   |-- special_tokens_map.json
 |   `-- pretraining_metadata.json
+|-- configs/
+|   `-- demo_config.json
+|-- model/
+|   |-- __init__.py
+|   `-- demo_model.py
 |-- scripts/
 |   |-- read_fasta_labels.py
 |   |-- load_features_demo.py
 |   |-- extract_pretrained_features_demo.py
 |   |-- evaluate_predictions.py
+|   |-- train_demo.py
+|   |-- predict_demo.py
+|   |-- run_demo.py
 |   `-- verify_release.py
 |-- requirements.txt
 `-- README.md
@@ -73,7 +81,47 @@ Run all commands below from the repository root.
 
 ## Usage
 
-### 1. Verify the downloaded files
+### 1. Run the end-to-end reference pipeline
+
+The reference pipeline uses the released 3,387-dimensional features and a compact multi-label MLP to demonstrate the complete workflow from feature loading and training to prediction and evaluation. It is provided as a runnable usage example; the complete implementation corresponding to the final manuscript version will be released upon publication.
+
+For a quick smoke test:
+
+```bash
+python scripts/run_demo.py --epochs 1 --max_train_samples 512 --max_test_samples 128
+```
+
+To run the demonstration with the complete training and test sets using the settings in `configs/demo_config.json`:
+
+```bash
+python scripts/run_demo.py
+```
+
+The default outputs are written to `outputs/reference_demo/`:
+
+```text
+reference_model.pt
+training_history.json
+test_probabilities.npy
+test_predictions.npy
+test_labels.npy
+metrics.json
+```
+
+Training settings can be changed either in `configs/demo_config.json` or through command-line options. For example:
+
+```bash
+python scripts/run_demo.py --epochs 20 --batch_size 256 --hidden_dim 512 --device cuda
+```
+
+The training and prediction stages can also be run separately:
+
+```bash
+python scripts/train_demo.py --output_dir outputs/reference_demo
+python scripts/predict_demo.py --checkpoint outputs/reference_demo/reference_model.pt --split test --output_dir outputs/reference_demo
+```
+
+### 2. Verify the downloaded files
 
 ```bash
 python scripts/verify_release.py
@@ -85,7 +133,7 @@ This command checks the FASTA records, 21-dimensional labels, sample counts, fea
 PUBLIC RELEASE CHECK: PASS
 ```
 
-### 2. Parse peptide sequences and labels
+### 3. Parse peptide sequences and labels
 
 The FASTA header of each peptide contains a 21-bit binary label vector. Convert the training and test FASTA files to tabular CSV files with:
 
@@ -106,7 +154,7 @@ Each row contains a sample identifier, peptide sequence, sequence length, number
 python scripts/read_fasta_labels.py --out_dir outputs/parsed_labels
 ```
 
-### 3. Load the prepared 3,387-dimensional features
+### 4. Load the prepared 3,387-dimensional features
 
 The concatenated feature matrices can be loaded directly:
 
@@ -120,7 +168,7 @@ print(X_train.shape)  # (7872, 3387)
 print(X_test.shape)   # (1969, 3387)
 ```
 
-### 4. Reconstruct the merged features
+### 5. Reconstruct the merged features
 
 To load the eight individual feature groups, apply the required dimensional expansion, and concatenate them in the predefined order, run:
 
@@ -141,7 +189,7 @@ To preserve the supplied matrices and write reconstructed files elsewhere:
 python scripts/load_features_demo.py --out_dir outputs/merged_features
 ```
 
-### 5. Extract pretrained sequence representations
+### 6. Extract pretrained sequence representations
 
 The supplied short-peptide encoder is a BERT masked-language model pretrained on UniRef90 peptide sequences. The following example encodes eight test peptides and mean-pools their residue representations:
 
@@ -155,7 +203,7 @@ The output is a NumPy array with shape `(8, 128)`. The split, number of sequence
 python scripts/extract_pretrained_features_demo.py --split train --limit 100 --batch_size 32 --output outputs/train_pretrained_features.npy
 ```
 
-### 6. Evaluate multi-label predictions
+### 7. Evaluate multi-label predictions
 
 Prepare the ground-truth labels and prediction scores as two-dimensional `.npy` arrays or headerless `.csv` matrices with the same shape, normally `(number_of_samples, 21)`. Then run:
 
@@ -250,6 +298,9 @@ Additional information is recorded in `pre_trained_model/pretraining_metadata.js
 | `load_features_demo.py` | Load, validate, expand, and concatenate the eight feature groups. |
 | `extract_pretrained_features_demo.py` | Extract 128-dimensional representations with the supplied peptide encoder. |
 | `evaluate_predictions.py` | Calculate five multi-label evaluation measures. |
+| `train_demo.py` | Train the compact multi-label reference model. |
+| `predict_demo.py` | Generate probability and binary prediction matrices. |
+| `run_demo.py` | Run training, prediction, and evaluation end to end. |
 | `verify_release.py` | Check data integrity and feature dimensions. |
 
 ## Notes
@@ -258,6 +309,7 @@ Additional information is recorded in `pre_trained_model/pretraining_metadata.js
 - Run the scripts from the repository root unless custom paths are explicitly supplied.
 - If a downloaded `.npy`, `.pkl`, or `.safetensors` file appears to be a small text pointer, run `git lfs pull` before using it.
 - Do not add CSV index columns or headers to the supplied feature matrices.
+- Generated checkpoints and prediction files are written under `outputs/` and are not required for using the supplied data files.
 
 ## Citation
 
