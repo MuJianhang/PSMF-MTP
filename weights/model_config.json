@@ -1,0 +1,107 @@
+{
+  "model": "PSMF-MTP",
+  "variant": "expanded3387, cached frozen-encoder representations",
+  "checkpoint": {
+    "filename": "psmf_mtp_100epochs_seed205808.pt",
+    "format": "PyTorch state_dict",
+    "contains": "eight descriptor mappings, sequence mapping, Mamba fusion, Transformer classifier, and output head",
+    "frozen_encoder_included": false,
+    "sha256": "c70c0420428b6e7291a1a2cbe048525ab032e49acb02508f2521368fef82e1e3",
+    "bytes": 27541639,
+    "tensor_count": 107,
+    "parameter_values": 6877163
+  },
+  "encoder": {
+    "directory": "pre_trained_model",
+    "weights": "model.safetensors",
+    "sha256": "d6ab0b7c2c526bca32378766c07516cbd6ca528532f0f2d24b1a90963cfe4d2b"
+  },
+  "input": {
+    "descriptor_dimension": 3387,
+    "sequence_dimension": 6400,
+    "feature_order": [
+      "AAC",
+      "DDE",
+      "CKSAAGP",
+      "PAAC",
+      "APAAC",
+      "AAindex1",
+      "CTD",
+      "MorganFP"
+    ],
+    "group_dimensions": [
+      400,
+      400,
+      400,
+      396,
+      384,
+      566,
+      441,
+      400
+    ],
+    "sequence_token_length": 50,
+    "special_tokens": [
+      "[CLS]",
+      "[SEP]"
+    ],
+    "maximum_encoded_residues": 48,
+    "sequence_representation": "flattened last_hidden_state",
+    "sequence_precision": "float16 cache rounded values converted to float32",
+    "additional_global_descriptor_standardization": false
+  },
+  "architecture": {
+    "fusion_dimension": 80,
+    "tokens": 41,
+    "mamba_blocks": 1,
+    "mamba_state": 16,
+    "mamba_convolution": 4,
+    "mamba_expansion": 4,
+    "transformer_layers": 1,
+    "transformer_heads": 4,
+    "transformer_feedforward": 256,
+    "dropout": 0.4,
+    "output_dimension": 21
+  },
+  "training": {
+    "epochs": 100,
+    "seed": 205808,
+    "batch_size": 64,
+    "optimizer": "AdamW",
+    "learning_rate": 8e-05,
+    "weight_decay": 0.15,
+    "encoder_frozen": true,
+    "loss": "IntegrationLoss",
+    "protocol": "fixed epoch and fixed probability threshold; test evaluated once",
+    "checkpoint_selection": "final fixed epoch"
+  },
+  "threshold": 0.57,
+  "labels": [
+    "AAP",
+    "ABP",
+    "ACP",
+    "ACVP",
+    "ADP",
+    "AEP",
+    "AFP",
+    "AHIVP",
+    "AHP",
+    "AIP",
+    "AMRSAP",
+    "APP",
+    "ATP",
+    "AVP",
+    "BBP",
+    "BIP",
+    "CPP",
+    "DPPIP",
+    "QSP",
+    "SBP",
+    "THP"
+  ],
+  "implementation_status": "Core architecture, custom loss, and full training/inference implementation are retained locally.",
+  "provenance": {
+    "experiment": "100-epoch full-feature configuration (expanded3387)",
+    "seed": 205808,
+    "note": "One individual checkpoint; its recorded metrics are not a five-run mean."
+  }
+}

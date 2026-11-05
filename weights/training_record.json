@@ -1,0 +1,24 @@
+{
+  "mode": "expanded3387",
+  "seed": 205808,
+  "epochs": 100,
+  "threshold": 0.57,
+  "feature_dimension": 3387,
+  "group_dimensions": [
+    400,
+    400,
+    400,
+    396,
+    384,
+    566,
+    441,
+    400
+  ],
+  "protocol": "fixed epoch and fixed probability threshold; test evaluated once",
+  "elapsed_seconds": 180.7748076915741,
+  "accuracy": 0.6574100945609332,
+  "precision": 0.7003639749449806,
+  "coverage": 0.7139773634187042,
+  "absolute_true": 0.5678009141696293,
+  "absolute_false": 0.03833224503615612
+}

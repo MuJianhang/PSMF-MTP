@@ -34,6 +34,7 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
+import numpy as np
 import pandas as pd
 
 
@@ -176,6 +177,7 @@ def main() -> None:
         help="Output directory for parsed CSV files. "
              "Default: <project_root>/parsed_labels",
     )
+    parser.add_argument("--save_npy", action="store_true", help="Also export train_labels.npy and test_labels.npy.")
     args = parser.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -198,6 +200,10 @@ def main() -> None:
 
     train_df.to_csv(train_out, index=False, encoding="utf-8-sig")
     test_df.to_csv(test_out, index=False, encoding="utf-8-sig")
+
+    if args.save_npy:
+        np.save(args.out_dir / "train_labels.npy", train_df[LABELS].to_numpy(dtype=np.int8))
+        np.save(args.out_dir / "test_labels.npy", test_df[LABELS].to_numpy(dtype=np.int8))
 
     print("\nSaved parsed CSV files:")
     print(f"  {train_out}")

@@ -1,56 +1,44 @@
 # PSMF-MTP
 
-PSMF-MTP is a computational framework for multi-functional therapeutic peptide prediction. This repository provides the benchmark dataset, eight groups of physicochemical and structural features, a short-peptide pretrained sequence encoder, utility scripts, and a runnable reference pipeline covering feature loading, model training, prediction, and multi-label evaluation.
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-## Repository contents
+PSMF-MTP predicts multiple therapeutic functions for short peptides by combining a pretrained sequence encoder, eight physicochemical and structural feature groups, Mamba-based fusion, and a Transformer classifier.
 
-```text
-PSMF-MTP/
-|-- dataset/
-|   |-- train_new.fasta
-|   |-- test_new.fasta
-|   `-- LABELS.md
-|-- features/
-|   |-- AAC/
-|   |-- DDE/
-|   |-- CKSAAGP/
-|   |-- PAAC/
-|   |-- APAAC/
-|   |-- AAindex1/
-|   |-- CTD/
-|   |-- MorganFP/
-|   `-- merged/
-|-- pre_trained_model/
-|   |-- config.json
-|   |-- model.safetensors
-|   |-- vocab.json
-|   |-- vocab.txt
-|   |-- tokenizer_config.json
-|   |-- special_tokens_map.json
-|   `-- pretraining_metadata.json
-|-- configs/
-|   `-- demo_config.json
-|-- model/
-|   |-- __init__.py
-|   `-- demo_model.py
-|-- scripts/
-|   |-- read_fasta_labels.py
-|   |-- load_features_demo.py
-|   |-- extract_pretrained_features_demo.py
-|   |-- evaluate_predictions.py
-|   |-- train_demo.py
-|   |-- predict_demo.py
-|   |-- run_demo.py
-|   `-- verify_release.py
-|-- requirements.txt
-`-- README.md
+This guide describes the overall project workflow, the released weights and data, preparation of a compatible dataset, and the local PyCharm demonstration.
+
+## Public resources and implementation scope
+
+| Resource | Location |
+|---|---|
+| Benchmark sequences and 21-label annotations | `dataset/` |
+| Eight feature groups and merged 3,387-dimensional matrices | `features/` |
+| Frozen short-peptide sequence encoder weights and tokenizer | `pre_trained_model/` |
+| Trained 100-epoch fusion/classification weights | `weights/psmf_mtp_100epochs_seed205808.pt` |
+| Checkpoint settings and individual training record | `weights/model_config.json`, `weights/training_record.json` |
+| Small aligned input example | `examples/small_demo/` |
+| Data preparation, sequence extraction, weight inspection, and evaluation utilities | `scripts/` |
+| PyCharm recording guide and future video location | [videos/README.md](videos/README.md) |
+
+The core architecture implementation, custom loss implementation, and complete training/inference entry points are retained locally at this stage. The public utilities can prepare inputs, verify weights, and evaluate saved predictions. Complete prediction in the planned video uses the local project with its retained core implementation; downloading a state dictionary does not by itself provide that implementation.
+
+## Overall workflow
+
+1. Prepare peptide sequences and functional annotations, and keep training/test data separate.
+2. Encode sequences with the frozen UniRef90 short-peptide encoder.
+3. Prepare AAC, DDE, CKSAAGP, PAAC, APAAC, AAindex1, CTD, and MorganFP features, and combine them in the fixed order.
+4. Map the sequence and descriptor features into a common representation space and fuse them through Mamba.
+5. Apply the Transformer classifier and sigmoid output to obtain 21 functional-label probabilities.
+6. During training, optimize the mapping/fusion/classification components while keeping the encoder frozen, and save the trained weights.
+7. During inference, load the corresponding encoder and predictor weights, then apply the configured threshold to obtain predicted label sets.
+8. When true labels are available, evaluate prediction quality and inspect label-wise results.
+
+The manuscript also examines comparison methods, feature and component ablations, descriptor dimensionality, downstream transfer of the encoder, auxiliary label-context analysis, label-wise performance, and representation/feature-group interpretation.
+
+## Environment and download
+
+The public utilities require Python 3.10 or later. Download large files using Git LFS:
+
 ```
-
-## Installation
-
-Python 3.10 or later is recommended. The repository contains large NumPy arrays and model files managed with Git LFS.
-
-```bash
 git lfs install
 git clone https://github.com/MuJianhang/PSMF-MTP.git
 cd PSMF-MTP
@@ -58,263 +46,181 @@ git lfs pull
 python -m venv .venv
 ```
 
-Activate the environment on Windows PowerShell:
+Activate the environment in Windows PowerShell:
 
-```powershell
+```
 .\.venv\Scripts\Activate.ps1
 ```
 
-Activate it on Linux or macOS:
+On Linux or macOS:
 
-```bash
+```
 source .venv/bin/activate
 ```
 
-Install the required packages:
+Install the public-tool dependencies:
 
-```bash
-python -m pip install --upgrade pip
+```
 python -m pip install -r requirements.txt
 ```
 
-Run all commands below from the repository root.
+The preprocessing and weight-inspection utilities can run on CPU. The complete local model environment additionally needs the retained implementation and its Mamba dependencies; the manuscript used Ubuntu under WSL with CUDA. In PyCharm, choose the interpreter that actually has those dependencies installed.
 
-## Usage
+## Released trained checkpoint
 
-### 1. Run the end-to-end reference pipeline
+The released checkpoint contains 6,877,163 parameter values for the sequence mapping, eight descriptor mappings, Mamba fusion, Transformer classifier, and output head. The frozen encoder is stored separately in `pre_trained_model/`; both components are needed for full prediction.
 
-The reference pipeline uses the released 3,387-dimensional features and a compact multi-label MLP to demonstrate the complete workflow from feature loading and training to prediction and evaluation. It is provided as a runnable usage example; the complete implementation corresponding to the final manuscript version will be released upon publication.
+| Setting | Selected checkpoint |
+|---|---|
+| Feature configuration | Complete 3,387-dimensional descriptor set |
+| Training epochs / seed | 100 / 205808 |
+| Batch size / optimizer | 64 / AdamW |
+| Learning rate / weight decay | `8e-5` / `0.15` |
+| Dropout | `0.4` |
+| Fusion dimension / tokens | 80 / 41 |
+| Mamba | One block; state 16; convolution 4; expansion 4 |
+| Transformer | One layer; four heads; feedforward dimension 256 |
+| Output labels / threshold | 21 / `0.57` |
 
-For a quick smoke test:
+This is one individual checkpoint from the 100-epoch full-feature configuration. Its training record describes that run; its metrics are not a five-run mean. Weights are supplied as a PyTorch `state_dict` and require the matching model definition for prediction. Configuration and SHA-256 checksums are recorded in [weights/model_config.json](weights/model_config.json).
 
-```bash
-python scripts/run_demo.py --epochs 1 --max_train_samples 512 --max_test_samples 128
+Check the release and inspect the actual weights:
+
 ```
-
-To run the demonstration with the complete training and test sets using the settings in `configs/demo_config.json`:
-
-```bash
-python scripts/run_demo.py
-```
-
-The default outputs are written to `outputs/reference_demo/`:
-
-```text
-reference_model.pt
-training_history.json
-test_probabilities.npy
-test_predictions.npy
-test_labels.npy
-metrics.json
-```
-
-Training settings can be changed either in `configs/demo_config.json` or through command-line options. For example:
-
-```bash
-python scripts/run_demo.py --epochs 20 --batch_size 256 --hidden_dim 512 --device cuda
-```
-
-The training and prediction stages can also be run separately:
-
-```bash
-python scripts/train_demo.py --output_dir outputs/reference_demo
-python scripts/predict_demo.py --checkpoint outputs/reference_demo/reference_model.pt --split test --output_dir outputs/reference_demo
-```
-
-### 2. Verify the downloaded files
-
-```bash
 python scripts/verify_release.py
+python scripts/inspect_model_weights.py
 ```
 
-This command checks the FASTA records, 21-dimensional labels, sample counts, feature dimensions, finite values, and merged feature matrices. A successful check ends with:
+Successful checks end with `PUBLIC RELEASE CHECK: PASS` and `PSMF-MTP WEIGHTS CHECK: PASS`.
 
-```text
-PUBLIC RELEASE CHECK: PASS
+## Example inputs
+
+The small example contains 128 training and 32 test records, with matching descriptor matrices:
+
+```
+examples/small_demo/
+|-- dataset/
+|   |-- train_new.fasta
+|   `-- test_new.fasta
+|-- features/merged/
+|   |-- train_features_3387.npy
+|   `-- test_features_3387.npy
+`-- provenance.json
 ```
 
-### 3. Parse peptide sequences and labels
+Parse annotations and export label matrices:
 
-The FASTA header of each peptide contains a 21-bit binary label vector. Convert the training and test FASTA files to tabular CSV files with:
-
-```bash
-python scripts/read_fasta_labels.py
+```
+python scripts/read_fasta_labels.py --dataset_dir examples/small_demo/dataset --out_dir outputs/small_demo/labels --save_npy
 ```
 
-The generated files are:
+This saves sequence/label CSVs, `train_labels.npy`, and `test_labels.npy`. To generate the encoder inputs used by the selected checkpoint:
 
-```text
-parsed_labels/train_sequences_labels.csv
-parsed_labels/test_sequences_labels.csv
+```
+python scripts/extract_sequence_features.py --fasta examples/small_demo/dataset/test_new.fasta --output outputs/small_demo/test_sequence_features.npy --device cpu
 ```
 
-Each row contains a sample identifier, peptide sequence, sequence length, number of positive labels, and 21 individual label columns. A different output directory can be specified as follows:
+The sequence matrix has shape `(32, 6400)`; the supplied test descriptor matrix has shape `(32, 3387)`. Both retain the original FASTA record order.
 
-```bash
-python scripts/read_fasta_labels.py --out_dir outputs/parsed_labels
+## Use your own dataset
+
+### 1. Prepare sequences and labels
+
+Use the same 21 functional definitions and label order. Ordinary FASTA identifiers are sufficient for sequence extraction and prediction; known labels are required for training/evaluation. A labeled header can contain an identifier followed by 21 binary values:
+
 ```
-
-### 4. Load the prepared 3,387-dimensional features
-
-The concatenated feature matrices can be loaded directly:
-
-```python
-import numpy as np
-
-X_train = np.load("features/merged/train_features_3387.npy")
-X_test = np.load("features/merged/test_features_3387.npy")
-
-print(X_train.shape)  # (7872, 3387)
-print(X_test.shape)   # (1969, 3387)
-```
-
-### 5. Reconstruct the merged features
-
-To load the eight individual feature groups, apply the required dimensional expansion, and concatenate them in the predefined order, run:
-
-```bash
-python scripts/load_features_demo.py
-```
-
-By default, the script writes:
-
-```text
-features/merged/train_features_3387.npy
-features/merged/test_features_3387.npy
-```
-
-To preserve the supplied matrices and write reconstructed files elsewhere:
-
-```bash
-python scripts/load_features_demo.py --out_dir outputs/merged_features
-```
-
-### 6. Extract pretrained sequence representations
-
-The supplied short-peptide encoder is a BERT masked-language model pretrained on UniRef90 peptide sequences. The following example encodes eight test peptides and mean-pools their residue representations:
-
-```bash
-python scripts/extract_pretrained_features_demo.py --split test --limit 8 --output outputs/test_pretrained_features.npy
-```
-
-The output is a NumPy array with shape `(8, 128)`. The split, number of sequences, batch size, and output path can be changed through command-line arguments:
-
-```bash
-python scripts/extract_pretrained_features_demo.py --split train --limit 100 --batch_size 32 --output outputs/train_pretrained_features.npy
-```
-
-### 7. Evaluate multi-label predictions
-
-Prepare the ground-truth labels and prediction scores as two-dimensional `.npy` arrays or headerless `.csv` matrices with the same shape, normally `(number_of_samples, 21)`. Then run:
-
-```bash
-python scripts/evaluate_predictions.py --true path/to/true_labels.npy --pred path/to/predicted_scores.npy --threshold 0.57
-```
-
-The script reports the five sample-based multi-label measures used in this project:
-
-- Accuracy;
-- Precision;
-- Coverage;
-- Absolute true;
-- Absolute false.
-
-If the prediction matrix already contains binary values, the threshold is not applied. Results can also be saved as JSON:
-
-```bash
-python scripts/evaluate_predictions.py --true path/to/true_labels.npy --pred path/to/predicted_scores.npy --threshold 0.57 --output outputs/metrics.json
-```
-
-## Dataset
-
-The benchmark contains 7,872 training peptides and 1,969 independent test peptides. Peptide lengths range from 1 to 50 amino-acid residues. A FASTA record is formatted as follows:
-
-```text
->000000000000000010000
+>peptide_001 labels=010000100000000000000
 ARRRRCSDRFRNCPADEALCGRRRR
 ```
 
+This record illustrates syntax. Actual labels must come from your annotations. The second and seventh bits denote ABP and AFP.
+
+Keep prepared files separate from the supplied benchmark:
+
+```
+data/my_dataset/
+|-- dataset/
+|   |-- train_new.fasta
+|   `-- test_new.fasta
+`-- features/merged/
+    |-- train_features_3387.npy
+    `-- test_features_3387.npy
+```
+
+```
+python scripts/read_fasta_labels.py --dataset_dir data/my_dataset/dataset --out_dir outputs/my_dataset/labels --save_npy
+```
+
+The checkpoint has a fixed 21-label output. Different target definitions require corresponding model/output adaptation and retraining.
+
+### 2. Prepare sequence representations
+
+```
+python scripts/extract_sequence_features.py --fasta data/my_dataset/dataset/test_new.fasta --output outputs/my_dataset/test_sequence_features.npy --device cpu
+```
+
+Repeat with the training FASTA and a different output path when preparing training inputs. Unlabeled FASTA files can be processed using the same command. Use `--max_samples` for a small initial check.
+
+For compatibility with the selected 100-epoch checkpoint, the helper uses 50 token positions including `[CLS]` and `[SEP]`, retaining up to the first 48 residues from each 1-50-residue input. It flattens all 50 hidden-state positions into 6,400 values and reproduces the training cache's float16 rounding before exporting float32 inputs. The accompanying `.ids.csv` and `.metadata.json` record sample order and preprocessing details.
+
+### 3. Prepare descriptor features
+
+Each split needs a finite matrix of shape `(number_of_samples, 3387)` with exactly the same row order as its sequences. Use the feature definitions and settings in the manuscript.
+
+If the eight feature-group files are already prepared, combine them with:
+
+```
+python scripts/load_features_demo.py --feature_root data/my_dataset/features --out_dir data/my_dataset/features/merged
+```
+
+| Group | Training filename | Stored columns | Model columns |
+|---|---|---:|---:|
+| AAC | `AAC/train_aac.csv` | 20 | 400 |
+| DDE | `DDE/train_dde.csv` | 400 | 400 |
+| CKSAAGP | `CKSAAGP/train_cksaagp.csv` | 100 | 400 |
+| PAAC | `PAAC/train_paac.csv` | 22 | 396 |
+| APAAC | `APAAC/train_apaac.csv` | 24 | 384 |
+| AAindex1 | `AAindex1/train_aaindex1.npy` | 566 | 566 |
+| CTD | `CTD/train_ctd.npy` | 441 | 441 |
+| MorganFP | `MorganFP/train_morganfp_400.npy` | 400 | 400 |
+
+Use the `test` prefix for test files. CSV feature files must have no header or index column. Concatenation follows the table order. The loader merges existing group files; complete extraction of all eight groups from arbitrary raw FASTA is not included in the public utilities.
+
+For inference with the released checkpoint, preserve the original feature definitions/scales and reuse the training-fitted Morgan preprocessing objects in `features/MorganFP/`. This checkpoint does not apply an additional global descriptor standardization. If developing a newly trained model, fit any data-dependent preprocessing using training data only.
+
+### 4. Run the complete model in your local project
+
+Open the full local PSMF-MTP project in PyCharm, select its configured interpreter, and set the working directory to that project root. In your retained inference entry point, specify the input FASTA, aligned 6,400-dimensional sequence representations and 3,387-dimensional descriptors, pretrained encoder location, released predictor checkpoint, threshold `0.57`, and output directory. Load the weights into the matching architecture, switch to evaluation mode, and run prediction.
+
+The core entry point is retained locally and is not supplied as a public script in this release. The planned video will show the actual run configuration and execution. To use another compatible dataset, replace both the sequence/annotation paths and the matching feature paths together; loading an unrelated feature matrix of the same shape is not sufficient.
+
+## Outputs and evaluation
+
+The local inference stage should export a probability matrix of shape `(number_of_samples, 21)`, thresholded predictions, and a sample/sequence mapping. Preserve this row order when evaluating. A CSV table with sequence identifiers, predicted labels, and probabilities is suitable for inspecting the results in the video.
+
+For saved scores and matching true labels, replace the example prediction path below with the actual local output:
+
+```
+python scripts/evaluate_predictions.py --true outputs/small_demo/labels/test_labels.npy --pred path/to/predicted_scores.npy --threshold 0.57 --output outputs/small_demo/metrics.json
+```
+
+The evaluator accepts `.npy` or headerless numerical CSV matrices. It reports Accuracy (sample-wise Jaccard agreement), Precision, Coverage (sample-wise recall), Absolute true (exact label-set match), and Absolute false (Hamming loss). True labels are needed to calculate metrics, while prediction of unlabeled peptides remains possible. Binary prediction matrices are evaluated directly.
+
 The fixed label order is:
 
-```text
+```
 AAP, ABP, ACP, ACVP, ADP, AEP, AFP, AHIVP, AHP, AIP, AMRSAP,
 APP, ATP, AVP, BBP, BIP, CPP, DPPIP, QSP, SBP, THP
 ```
 
-See [`dataset/LABELS.md`](dataset/LABELS.md) for the indexed label list.
+See [dataset/LABELS.md](dataset/LABELS.md). The full benchmark has 7,872 training and 1,969 test peptides; source indices for the small example are in `provenance.json`.
 
-## Feature representation
+## Local PyCharm video
 
-Eight feature groups are supplied. After preprocessing, they form a 3,387-dimensional representation for each peptide.
+The recording is planned for approximately 1-2 minutes: select example/own-data paths, show the local configuration, load the trained weights, run prediction, inspect outputs, and show where to substitute another dataset.
 
-| Feature group | Stored format | Original dimension | Input dimension |
-|---|---:|---:|---:|
-| AAC | CSV | 20 | 400 |
-| DDE | CSV | 400 | 400 |
-| CKSAAGP | CSV | 100 | 400 |
-| PAAC | CSV | 22 | 396 |
-| APAAC | CSV | 24 | 384 |
-| AAindex1 | NPY | 566 | 566 |
-| CTD | NPY | 441 | 441 |
-| MorganFP | NPY | 400 | 400 |
-| **Total** |  |  | **3,387** |
+The video has not yet been recorded. Recording guidance and the intended upload directory are provided in [videos/README.md](videos/README.md). Add the actual video link after uploading the recording.
 
-The fixed concatenation order and column intervals are:
+## Citation and contact
 
-```text
-AAC:         0-400
-DDE:       400-800
-CKSAAGP:   800-1200
-PAAC:     1200-1596
-APAAC:    1596-1980
-AAindex1: 1980-2546
-CTD:      2546-2987
-MorganFP: 2987-3387
-```
-
-The Morgan fingerprints were generated as 1,024-bit radius-2 representations and reduced to 400 dimensions using a scaler and PCA fitted on the training set. The fitted preprocessing objects and parameter description are included under `features/MorganFP/`.
-
-## Pretrained peptide encoder
-
-The `pre_trained_model/` directory contains the model configuration, vocabulary, tokenizer files, and weights required by `extract_pretrained_features_demo.py`. Its principal settings are:
-
-| Setting | Value |
-|---|---:|
-| Architecture | BertForMaskedLM |
-| Pretraining task | Masked language modeling |
-| Vocabulary size | 26 |
-| Hidden size | 128 |
-| Hidden layers | 6 |
-| Attention heads | 8 |
-| Maximum positions | 128 |
-
-Additional information is recorded in `pre_trained_model/pretraining_metadata.json`.
-
-## Utility scripts
-
-| Script | Purpose |
-|---|---|
-| `read_fasta_labels.py` | Parse peptide sequences and 21-bit labels from FASTA files. |
-| `load_features_demo.py` | Load, validate, expand, and concatenate the eight feature groups. |
-| `extract_pretrained_features_demo.py` | Extract 128-dimensional representations with the supplied peptide encoder. |
-| `evaluate_predictions.py` | Calculate five multi-label evaluation measures. |
-| `train_demo.py` | Train the compact multi-label reference model. |
-| `predict_demo.py` | Generate probability and binary prediction matrices. |
-| `run_demo.py` | Run training, prediction, and evaluation end to end. |
-| `verify_release.py` | Check data integrity and feature dimensions. |
-
-## Notes
-
-- Keep the original sample order unchanged when aligning sequences, labels, and feature matrices.
-- Run the scripts from the repository root unless custom paths are explicitly supplied.
-- If a downloaded `.npy`, `.pkl`, or `.safetensors` file appears to be a small text pointer, run `git lfs pull` before using it.
-- Do not add CSV index columns or headers to the supplied feature matrices.
-- Generated checkpoints and prediction files are written under `outputs/` and are not required for using the supplied data files.
-
-## Citation
-
-If you use the dataset, feature representations, pretrained encoder, or utility scripts in your research, please cite the accompanying PSMF-MTP manuscript.
-
-## Contact
-
-For questions about this repository, please open an issue at [MuJianhang/PSMF-MTP](https://github.com/MuJianhang/PSMF-MTP/issues).
+Please cite the accompanying PSMF-MTP manuscript when using these resources. Questions can be submitted through [GitHub issues](https://github.com/MuJianhang/PSMF-MTP/issues).

@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -20,10 +22,13 @@ from load_features_demo import load_all_features  # noqa: E402
 EXPECTED_COUNTS = {"train": 7872, "test": 1969}
 REQUIRED_FILES = [
     "README.md",
+    "weights/psmf_mtp_100epochs_seed205808.pt",
+    "weights/model_config.json",
+    "weights/training_record.json",
+    "weights/README.md",
+    "videos/README.md",
+    "scripts/inspect_model_weights.py",
     "requirements.txt",
-    "configs/demo_config.json",
-    "model/__init__.py",
-    "model/demo_model.py",
     "dataset/train_new.fasta",
     "dataset/test_new.fasta",
     "dataset/LABELS.md",
@@ -33,11 +38,15 @@ REQUIRED_FILES = [
     "pre_trained_model/pretraining_metadata.json",
     "scripts/read_fasta_labels.py",
     "scripts/load_features_demo.py",
-    "scripts/extract_pretrained_features_demo.py",
+    "scripts/extract_sequence_features.py",
     "scripts/evaluate_predictions.py",
-    "scripts/train_demo.py",
-    "scripts/predict_demo.py",
-    "scripts/run_demo.py",
+    "README.zh-CN.md",
+    "scripts/prepare_example_dataset.py",
+    "examples/small_demo/dataset/train_new.fasta",
+    "examples/small_demo/dataset/test_new.fasta",
+    "examples/small_demo/features/merged/train_features_3387.npy",
+    "examples/small_demo/features/merged/test_features_3387.npy",
+    "examples/small_demo/provenance.json",
 ]
 
 
@@ -117,6 +126,15 @@ def main() -> None:
     if merged_test.exists() and np.load(merged_test, mmap_mode="r").shape != test.shape:
         fail("Existing merged test matrix has an unexpected shape")
     print("PASS merged-feature shape check")
+
+    config = json.loads((ROOT / "weights/model_config.json").read_text(encoding="utf-8"))
+    checkpoint = ROOT / "weights" / config["checkpoint"]["filename"]
+    if hashlib.sha256(checkpoint.read_bytes()).hexdigest() != config["checkpoint"]["sha256"]:
+        fail("Predictor checkpoint checksum mismatch; check Git LFS download")
+    encoder = ROOT / config["encoder"]["directory"] / config["encoder"]["weights"]
+    if hashlib.sha256(encoder.read_bytes()).hexdigest() != config["encoder"]["sha256"]:
+        fail("Frozen encoder checksum differs from the released predictor configuration")
+    print("PASS predictor and frozen-encoder checksums")
 
     print("\nPUBLIC RELEASE CHECK: PASS")
 

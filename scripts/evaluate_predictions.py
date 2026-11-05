@@ -14,7 +14,7 @@ def load_matrix(path: Path) -> np.ndarray:
     if path.suffix.lower() == ".npy":
         matrix = np.load(path)
     elif path.suffix.lower() == ".csv":
-        matrix = np.loadtxt(path, delimiter=",")
+        matrix = np.loadtxt(path, delimiter=",", ndmin=2)
     else:
         raise ValueError(f"Unsupported matrix format: {path}. Use .npy or headerless .csv")
     if matrix.ndim != 2:
