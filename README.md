@@ -17,9 +17,9 @@ This guide describes the overall project workflow, the released weights and data
 | Checkpoint settings and individual training record | `weights/model_config.json`, `weights/training_record.json` |
 | Small aligned input example | `examples/small_demo/` |
 | Data preparation, sequence extraction, weight inspection, and evaluation utilities | `scripts/` |
-| PyCharm recording guide and future video location | [videos/README.md](videos/README.md) |
+| PyCharm/WSL workflow demonstration | [Watch the video](videos/brief%20introduce.mp4) |
 
-The core architecture implementation, custom loss implementation, and complete training/inference entry points are retained locally at this stage. The public utilities can prepare inputs, verify weights, and evaluate saved predictions. Complete prediction in the planned video uses the local project with its retained core implementation; downloading a state dictionary does not by itself provide that implementation.
+The core architecture implementation, custom loss implementation, and complete training/inference entry points are retained locally at this stage. The public utilities can prepare inputs, verify weights, and evaluate saved predictions. Complete prediction in the video uses the local project with its retained core implementation; downloading a state dictionary does not by itself provide that implementation.
 
 ## Overall workflow
 
@@ -192,7 +192,7 @@ For inference with the released checkpoint, preserve the original feature defini
 
 Open the full local PSMF-MTP project in PyCharm, select its configured interpreter, and set the working directory to that project root. In your retained inference entry point, specify the input FASTA, aligned 6,400-dimensional sequence representations and 3,387-dimensional descriptors, pretrained encoder location, released predictor checkpoint, threshold `0.57`, and output directory. Load the weights into the matching architecture, switch to evaluation mode, and run prediction.
 
-The core entry point is retained locally and is not supplied as a public script in this release. The planned video will show the actual run configuration and execution. To use another compatible dataset, replace both the sequence/annotation paths and the matching feature paths together; loading an unrelated feature matrix of the same shape is not sufficient.
+The core entry point is retained locally and is not supplied as a public script in this release. The [demonstration video](videos/brief%20introduce.mp4) shows the actual run configuration and execution. To use another compatible dataset, replace both the sequence/annotation paths and the matching feature paths together; loading an unrelated feature matrix of the same shape is not sufficient.
 
 ## Outputs and evaluation
 
@@ -217,9 +217,11 @@ See [dataset/LABELS.md](dataset/LABELS.md). The full benchmark has 7,872 trainin
 
 ## Local PyCharm video
 
-The recording is planned for approximately 1-2 minutes: select example/own-data paths, show the local configuration, load the trained weights, run prediction, inspect outputs, and show where to substitute another dataset.
+[Watch the PSMF-MTP workflow demonstration](videos/brief%20introduce.mp4).
 
-The video has not yet been recorded. Recording guidance and the intended upload directory are provided in [videos/README.md](videos/README.md). Add the actual video link after uploading the recording.
+The video shows example inputs, prediction with the released 100-epoch checkpoint, predicted-label outputs, dataset path locations, and a three-epoch training preview in PyCharm using WSL with CUDA. The preview demonstrates execution; its metrics do not represent final model performance.
+
+The recording uses a local 30-record test subset, while the public small example contains 32 test records. It demonstrates operation of the complete local project and complements the input preparation and evaluation instructions above.
 
 ## Citation and contact
 

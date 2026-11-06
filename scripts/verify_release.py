@@ -26,7 +26,7 @@ REQUIRED_FILES = [
     "weights/model_config.json",
     "weights/training_record.json",
     "weights/README.md",
-    "videos/README.md",
+    "videos/brief introduce.mp4",
     "scripts/inspect_model_weights.py",
     "requirements.txt",
     "dataset/train_new.fasta",
