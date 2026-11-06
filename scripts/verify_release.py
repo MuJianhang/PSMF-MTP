@@ -40,7 +40,6 @@ REQUIRED_FILES = [
     "scripts/load_features_demo.py",
     "scripts/extract_sequence_features.py",
     "scripts/evaluate_predictions.py",
-    "README.zh-CN.md",
     "scripts/prepare_example_dataset.py",
     "examples/small_demo/dataset/train_new.fasta",
     "examples/small_demo/dataset/test_new.fasta",

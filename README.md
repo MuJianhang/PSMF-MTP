@@ -1,7 +1,5 @@
 # PSMF-MTP
 
-[English](README.md) | [简体中文](README.zh-CN.md)
-
 PSMF-MTP predicts multiple therapeutic functions for short peptides by combining a pretrained sequence encoder, eight physicochemical and structural feature groups, Mamba-based fusion, and a Transformer classifier.
 
 This guide describes the overall project workflow, the released weights and data, preparation of a compatible dataset, and the local PyCharm demonstration.
