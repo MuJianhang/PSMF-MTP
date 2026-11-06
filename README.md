@@ -93,7 +93,7 @@ Successful checks end with `PUBLIC RELEASE CHECK: PASS` and `PSMF-MTP WEIGHTS CH
 
 ## Example inputs
 
-The small example contains 128 training and 32 test records, with matching descriptor matrices:
+The small example contains 128 training and 30 test records, with matching descriptor matrices. The curated test subset is intended for workflow demonstration rather than benchmark performance assessment; its selection history is recorded in [provenance.json](examples/small_demo/provenance.json).
 
 ```
 examples/small_demo/
@@ -118,7 +118,7 @@ This saves sequence/label CSVs, `train_labels.npy`, and `test_labels.npy`. To ge
 python scripts/extract_sequence_features.py --fasta examples/small_demo/dataset/test_new.fasta --output outputs/small_demo/test_sequence_features.npy --device cpu
 ```
 
-The sequence matrix has shape `(32, 6400)`; the supplied test descriptor matrix has shape `(32, 3387)`. Both retain the original FASTA record order.
+The sequence matrix has shape `(30, 6400)`; the supplied test descriptor matrix has shape `(30, 3387)`. Both retain the original FASTA record order.
 
 ## Use your own dataset
 
@@ -219,7 +219,7 @@ See [dataset/LABELS.md](dataset/LABELS.md). The full benchmark has 7,872 trainin
 
 The video shows example inputs, prediction with the released 100-epoch checkpoint, predicted-label outputs, dataset path locations, and a three-epoch training preview in PyCharm using WSL with CUDA. The preview demonstrates execution; its metrics do not represent final model performance.
 
-The recording uses a local 30-record test subset, while the public small example contains 32 test records. It demonstrates operation of the complete local project and complements the input preparation and evaluation instructions above.
+The recording uses the 30-record test example provided in `examples/small_demo/`. It demonstrates operation of the complete local project and complements the input preparation and evaluation instructions above.
 
 ## Citation and contact
 

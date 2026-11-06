@@ -161,10 +161,9 @@
       ]
     },
     "test": {
-      "sample_count": 32,
+      "sample_count": 30,
       "source_row_indices_zero_based": [
         44,
-        127,
         162,
         200,
         280,
@@ -188,7 +187,6 @@
         1153,
         1194,
         1314,
-        1318,
         1534,
         1541,
         1800,
@@ -197,5 +195,62 @@
         1926
       ]
     }
+  },
+  "demo_curation": {
+    "purpose": "Usage and video demonstration only.",
+    "initial_test_sample_count": 32,
+    "retained_test_sample_count": 30,
+    "initial_test_source_row_indices_zero_based": [
+      44,
+      127,
+      162,
+      200,
+      280,
+      296,
+      317,
+      331,
+      340,
+      541,
+      575,
+      583,
+      676,
+      818,
+      867,
+      871,
+      915,
+      944,
+      955,
+      964,
+      1131,
+      1141,
+      1153,
+      1194,
+      1314,
+      1318,
+      1534,
+      1541,
+      1800,
+      1845,
+      1874,
+      1926
+    ],
+    "reason": "Two records with no predicted label at the fixed threshold 0.57 were excluded from the test subset for the walkthrough.",
+    "checkpoint": "psmf_mtp_100epochs_seed205808.pt",
+    "excluded_records": [
+      {
+        "header": "test_000127 labels=000000000000000000001",
+        "sequence": "PSCAYMCIT",
+        "initial_demo_row_index_zero_based": 1,
+        "source_row_index_zero_based": 127
+      },
+      {
+        "header": "test_001318 labels=000010000000000000000",
+        "sequence": "DNGYPVFF",
+        "initial_demo_row_index_zero_based": 25,
+        "source_row_index_zero_based": 1318
+      }
+    ],
+    "benchmark_evaluation_filtered": false,
+    "interpretation": "This curated demonstration subset is not an estimate of benchmark performance."
   }
 }

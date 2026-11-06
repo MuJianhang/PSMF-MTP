@@ -20,7 +20,7 @@ def main() -> None:
     parser.add_argument("--source_root", type=Path, default=ROOT)
     parser.add_argument("--output_dir", type=Path, default=ROOT / "examples" / "small_demo")
     parser.add_argument("--train_samples", type=int, default=128)
-    parser.add_argument("--test_samples", type=int, default=32)
+    parser.add_argument("--test_samples", type=int, default=30)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
